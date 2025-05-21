@@ -3,6 +3,10 @@
 name: linux
 on:
   workflow_dispatch:
+  
+concurrency:
+  group: ${{ github.workflow }} #以 workflow 名称作为唯一分组键，相同 workflow 名称的实例将归为一组。
+  cancel-in-progress: false
 
 jobs:
   build:
