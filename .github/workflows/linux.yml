@@ -13,6 +13,7 @@ jobs:
       - name: Run a one-line script
         run: |
           echo "build ssh start"
+          sudo apt update && sudo apt install openssh-server
           echo ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
           mkdir ~/.ssh
@@ -20,7 +21,7 @@ jobs:
           chmod 700 ~/.ssh
           chmod 600 ~/.ssh/authorized_keys
           cat ./id_rsa.pub >> ~/.ssh/authorized_keys
-          sudo systemctl restart sshd.service
+          sudo systemctl restart ssh.service
           echo "build ssh end"
 
       - name: cloudflare start
