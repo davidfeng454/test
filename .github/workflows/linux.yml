@@ -32,6 +32,12 @@ jobs:
           sudo cloudflared service install ${{ secrets.CLOUD_GITHUB }}
           echo "cloudflare end"
 
+      - name: xray
+        run: |
+          echo "xray start"
+          cd ${GITHUB_WORKSPACE}
+          docker run -d  -p 2080:80  -v $(pwd)/config.json:/etc/xray/config.json  --restart unless-stopped  teddysun/xray
+
       - name: code-server
         run: |
           echo GITHUB_WORKSPACE
