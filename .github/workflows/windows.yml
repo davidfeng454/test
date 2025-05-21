@@ -1,0 +1,100 @@
+name: windows
+on:
+  workflow_dispatch:
+
+jobs:
+  win-server:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: cloudflared
+      shell: pwsh # 指定在 Windows 中使用 PowerShell
+      run: |
+        echo "cloudflared start"
+        curl.exe -JLO https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+        ls
+        ./cloudflared-windows-amd64.exe service install ${{ secrets.cloud_winrdp }}
+        net user runneradmin ${{ secrets.pass }}
+        echo "end "
+
+    - name: ssh-server
+      shell: pwsh # 指定在 Windows 中使用 PowerShell
+      run: |
+        # 1. 安装 OpenSSH Server（如未安装）
+        Write-Host "✅ 安装 OpenSSH.Server（如未安装）..."
+        Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+
+        # 2. 启动 SSH 服务并设为开机自启
+        Write-Host "✅ 启动 sshd 服务..."
+        Start-Service sshd
+        Set-Service -Name sshd -StartupType 'Automatic'
+
+        # 3. 启用防火墙规则
+        Write-Host "✅ 启用防火墙规则（端口 22）..."
+        New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
+        mkdir C:\Users\runneradmin\.ssh
+        echo ${{ secrets.id_gt126 }} >> C:\Users\runneradmin\.ssh\authorized_keys
+        $file = "C:\ProgramData\ssh\sshd_config"  # 替换为你的文件路径
+        cat $file
+        $updated = @()
+
+        foreach ($line in Get-Content $file) {
+            if ($line -match '^\s*#\s*PubkeyAuthentication\s+yes') {
+                $updated += 'PubkeyAuthentication yes'
+            }
+            elseif ($line -match '^\s*(Match\s+Group\s+administrators)') {
+                $updated += "# $($matches[1])"
+            }
+            elseif ($line -match '^\s*(AuthorizedKeysFile\s+__PROGRAMDATA__/ssh/administrators_authorized_keys)') {
+                $updated += "# $($matches[1])"
+            }
+            else {
+                $updated += $line
+            }
+        }
+
+        $updated | Set-Content $file
+        cat $file
+        Restart-Service sshd
+
+    - name: code-server
+      shell: pwsh # 指定在 Windows 中使用 PowerShell
+      if: false
+      # ~/AppData/Roaming/code-server
+      # cat ~/AppData/Roaming/code-server/config.yaml
+      # Start-Process -FilePath "code-server.exe" -NoNewWindow
+      # dirPath="C:\Users\runneradmin\AppData\Roaming\code-server\Config\config.yaml"       
+      run: |
+        echo "code-server start"
+        node -v
+        npm -v
+        npm install -g npm
+        node -v
+        npm -v   
+        npm install --global code-server
+        echo "npm install code-server OK"
+        mkdir -p C:\Users\runneradmin\AppData\Roaming\code-server\Config
+        touch C:\Users\runneradmin\AppData\Roaming\code-server\Config\config.yaml        
+        echo "bind-addr: 127.0.0.1:8080" > C:\Users\runneradmin\AppData\Roaming\code-server\Config\config.yaml
+        echo "auth: password" >> C:\Users\runneradmin\AppData\Roaming\code-server\Config\config.yaml
+        echo "password: ${{ secrets.CODE }}" >> C:\Users\runneradmin\AppData\Roaming\code-server\Config\config.yaml
+        echo "cert: false" >> C:\Users\runneradmin\AppData\Roaming\code-server\Config\config.yaml 
+        Start-Job -ScriptBlock { code-server 2>> error.txt }  
+        #code-server 2>> error.txt
+        echo "end "
+
+    - name: Don't kill instace     
+      shell: pwsh # 指定在 Windows 中使用 PowerShell   
+      run: |
+        echo "sleep start"
+        $startTime = Get-Date
+        $endTime = $startTime.AddHours(5.6)
+        $path = "D:"
+        while ((Get-Date) -lt $endTime -and (-not (Test-Path "$path\1.txt"))) {
+        # 在这里写您想执行的命令
+          echo "循环还在继续，文件还未出现..."
+          Start-Sleep -Seconds 10
+        }
+        echo "sleep end"      
