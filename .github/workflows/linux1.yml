@@ -31,25 +31,13 @@ jobs:
       - name: cloudflare start
         run: |
           echo "cloudflare start"
-          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared.deb
-          #sudo cloudflared service install ${{ secrets.CLOUD_GITHUB }}
-          #echo "cloudflare end"
-
-
-      - name: enc
-        run: |
           echo GITHUB_WORKSPACE
           cd ${GITHUB_WORKSPACE}
-          pwd
-          ls -al
-          cd cloudflared
-          ls -al
-          #openssl enc -aes-256-cbc -salt -pbkdf2 -in tunnel1.txt -out tunnel1.enc.txt -k WIN_CODE
-          openssl enc -d -aes-256-cbc -pbkdf2 -in tunnel1.enc.txt -out dec.txt -k ${{ secrets.WIN_CODE }}
-          cat dec.txt
-
-          echo "enc end"
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+          cloudflaredCode=$(openssl enc -d -aes-256-cbc -pbkdf2 -in cloudflared/tunnel1.enc.txt -k ${{ secrets.WIN_CODE }})
+          sudo cloudflared service install $cloudflaredCode
+          echo "cloudflare end"
           
       - name: end 
         run: |
