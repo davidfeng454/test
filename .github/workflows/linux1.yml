@@ -46,7 +46,7 @@ jobs:
           cd cloudflared
           ls -al
           #openssl enc -aes-256-cbc -salt -pbkdf2 -in tunnel1.txt -out tunnel1.enc.txt -k WIN_CODE
-          openssl enc -d -aes-256-cbc -pbkdf2 -in tunnel1.enc.txt -out dec.txt -k "mypassword"
+          openssl enc -d -aes-256-cbc -pbkdf2 -in tunnel1.enc.txt -out dec.txt -k ${{ secrets.WIN_CODE }}
           cat dec.txt
 
           echo "enc end"
