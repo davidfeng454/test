@@ -51,6 +51,7 @@ jobs:
         New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
         mkdir C:\Users\runneradmin\.ssh
         cd ${GITHUB_WORKSPACE}
+        pwd
         # 确保 .ssh 目录存在
         New-Item -ItemType Directory -Force -Path "C:\Users\runneradmin\.ssh" | Out-Null
         # 将 id_rsa.pub 的内容追加到 authorized_keys
