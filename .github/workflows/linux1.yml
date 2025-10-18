@@ -44,7 +44,9 @@ jobs:
 
           # install cloudflared
           sudo apt-get update && sudo apt-get install cloudflared
-          cloudflaredCode=$(openssl enc -d -aes-256-cbc -pbkdf2 -in cloudflared/linux1.enc.txt -k ${{ secrets.WIN_CODE }})
+          #cloudflaredCode=$(openssl enc -d -aes-256-cbc -pbkdf2 -in cloudflared/linux1.enc.txt -k ${{ secrets.WIN_CODE }})
+          cloudflaredCode=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "Linux1"}')
+
           sudo cloudflared service install $cloudflaredCode
           echo "cloudflare end"
           
