@@ -33,8 +33,17 @@ jobs:
           echo "cloudflare start"
           echo GITHUB_WORKSPACE
           cd ${GITHUB_WORKSPACE}
-          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared.deb
+          #curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          #sudo dpkg -i cloudflared.deb
+          # Add cloudflare gpg key
+          sudo mkdir -p --mode=0755 /usr/share/keyrings
+          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+
+          # Add this repo to your apt repositories
+          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+
+          # install cloudflared
+          sudo apt-get update && sudo apt-get install cloudflared
           cloudflaredCode=$(openssl enc -d -aes-256-cbc -pbkdf2 -in cloudflared/linux1.enc.txt -k ${{ secrets.WIN_CODE }})
           sudo cloudflared service install $cloudflaredCode
           echo "cloudflare end"
