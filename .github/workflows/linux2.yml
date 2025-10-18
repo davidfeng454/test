@@ -1,0 +1,60 @@
+# This is a basic workflow to help you get started with Actions
+
+name: linux2
+on:
+  workflow_dispatch:
+  
+concurrency:
+  group: ${{ github.workflow }} #以 workflow 名称作为唯一分组键，相同 workflow 名称的实例将归为一组。
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run a one-line script
+        run: |
+          echo "build ssh start"
+          sudo apt update && sudo apt install openssh-server
+          echo ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}
+          mkdir ~/.ssh
+          touch ~/.ssh/authorized_keys
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/authorized_keys
+          cat ./id_rsa.pub >> ~/.ssh/authorized_keys
+          sudo systemctl restart ssh.service
+          echo "build ssh end"
+
+      - name: cloudflare start
+        run: |
+          echo "cloudflare start"
+          echo GITHUB_WORKSPACE
+          cd ${GITHUB_WORKSPACE}
+          #curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          #sudo dpkg -i cloudflared.deb
+          # Add cloudflare gpg key
+          sudo mkdir -p --mode=0755 /usr/share/keyrings
+          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+
+          # Add this repo to your apt repositories
+          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+
+          # install cloudflared
+          sudo apt-get update && sudo apt-get install cloudflared
+          #cloudflaredCode=$(openssl enc -d -aes-256-cbc -pbkdf2 -in cloudflared/linux1.enc.txt -k ${{ secrets.WIN_CODE }})
+          cloudflaredCode=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "Linux2"}')
+
+          sudo cloudflared service install $cloudflaredCode
+          echo "cloudflare end"
+          
+      - name: end 
+        run: |
+          echo ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}
+          chmod +x end.sh
+          ./end.sh
+
+          
