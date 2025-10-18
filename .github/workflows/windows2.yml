@@ -1,0 +1,50 @@
+name: windows2
+on:
+  workflow_dispatch:
+  
+concurrency:
+  group: ${{ github.workflow }} #以 workflow 名称作为唯一分组键，相同 workflow 名称的实例将归为一组。
+  cancel-in-progress: false
+
+jobs:
+  win-server:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: cloudflared
+      shell: pwsh # 指定在 Windows 中使用 PowerShell
+      env:
+          WIN_CODE: ${{ secrets.WIN_CODE }}
+      run: |
+        echo "cloudflared start"
+        curl.exe -JLO https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+        ls
+        # 发送 POST,返回可能是纯文本或 JSON
+        $body = '{"machine":"Windows1"}'
+        $headers = @{ "Authorization" = "Bearer $env:WIN_CODE"; "Content-Type" = "application/json" }
+
+        # 如果 API 返回 JSON 且需要从某个字段取值，请使用 ConvertFrom-Json （见下方说明）
+        $resp = Invoke-RestMethod -Uri "https://jsproj-nu.vercel.app/api/machine_value" -Method Post -Headers $headers -Body $body
+
+        # 情况 A: 返回是纯文本 code(或返回字符串）：
+        $cloudflaredCode = $resp.ToString().Trim()
+        ./cloudflared-windows-amd64.exe service install $cloudflaredCode
+
+        net user runneradmin ${{ secrets.WIN_CODE }}
+        echo "end "
+
+    - name: Don't kill instace     
+      shell: pwsh # 指定在 Windows 中使用 PowerShell   
+      run: |
+        echo "sleep start"
+        $startTime = Get-Date
+        $endTime = $startTime.AddHours(5.6)
+        $path = "D:"
+        while ((Get-Date) -lt $endTime -and (-not (Test-Path "$path\1.txt"))) {
+        # 在这里写您想执行的命令
+          echo "循环还在继续，文件还未出现..."
+          Start-Sleep -Seconds 10
+        }
+        echo "sleep end"      
