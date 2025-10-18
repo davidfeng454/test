@@ -35,7 +35,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}
           curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
           sudo dpkg -i cloudflared.deb
-          cloudflaredCode=$(openssl enc -d -aes-256-cbc -pbkdf2 -in cloudflared/tunnel1.enc.txt -k ${{ secrets.WIN_CODE }})
+          cloudflaredCode=$(openssl enc -d -aes-256-cbc -pbkdf2 -in cloudflared/linux1.enc.txt -k ${{ secrets.WIN_CODE }})
           sudo cloudflared service install $cloudflaredCode
           echo "cloudflare end"
           
