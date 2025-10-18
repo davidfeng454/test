@@ -50,14 +50,14 @@ jobs:
         Write-Host "✅ 启用防火墙规则（端口 22)..."
         New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction SilentlyContinue
         mkdir C:\Users\runneradmin\.ssh
-        cd ${GITHUB_WORKSPACE}
-        pwd
-        ls
+        # 使用 GitHub workspace 的 id_rsa.pub 文件
+        $pubKeyPath = Join-Path $env:GITHUB_WORKSPACE "id_rsa.pub"
         # 确保 .ssh 目录存在
         New-Item -ItemType Directory -Force -Path "C:\Users\runneradmin\.ssh" | Out-Null
         # 将 id_rsa.pub 的内容追加到 authorized_keys
-        Get-Content ".\id_rsa.pub" | Out-File -FilePath "C:\Users\runneradmin\.ssh\authorized_keys" -Encoding utf8 -Append
-        
+        # Get-Content ".\id_rsa.pub" | Out-File -FilePath "C:\Users\runneradmin\.ssh\authorized_keys" -Encoding utf8 -Append
+        Get-Content $pubKeyPath | Out-File -FilePath "C:\Users\runneradmin\.ssh\authorized_keys" -Encoding utf8 -Append
+                
         $file = "C:\ProgramData\ssh\sshd_config"  # 替换为你的文件路径
         cat $file
         $updated = @()
