@@ -1,0 +1,52 @@
+{
+    "log": {
+        "access": "/var/log/xray/access.log",
+        "error": "/var/log/xray/error.log",
+        "loglevel": "debug"
+    },
+    "inbounds": [
+        {
+            "port": 80,
+            "listen": "0.0.0.0",
+            "protocol": "vless",
+            "tag": "vless",
+            "settings": {
+                "clients": [{
+                    "id": "0130a464-ea33-405e-a833-e919336fb33b"  
+                  }],
+                "decryption": "none",
+                "fallbacks": [
+                    {
+                        "path": "/ws",
+                        "dest": 8081
+                    }
+                ]
+            }
+        },
+        {
+            "port": 8081,
+            "listen": "127.0.0.1",
+            "protocol": "vless",
+            "tag": "ws",
+            "settings": {
+                "clients": [{
+                    "id": "0130a464-ea33-405e-a833-e919336fb33b"  
+                  }],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "path": "/ws"
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+			      "tag": "direct",
+			      "protocol": "freedom"
+        }
+    ]
+}
