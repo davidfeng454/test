@@ -79,6 +79,10 @@ jobs:
 
         $updated | Set-Content $file
         cat $file
+        # 路径使用旧版 Windows PowerShell
+        $ShellPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+        # 创建或修改注册表值
+        New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value $ShellPath -PropertyType String -Force
         Restart-Service sshd
 
 
