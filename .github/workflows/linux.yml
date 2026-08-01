@@ -8,6 +8,10 @@ concurrency:
   group: ${{ github.workflow }} #以 workflow 名称作为唯一分组键，相同 workflow 名称的实例将归为一组。
   cancel-in-progress: false
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,6 +20,8 @@ jobs:
 
       - name: Run a one-line script
         run: |
+          echo $ACTIONS_ID_TOKEN_REQUEST_TOKEN >> ~/token.txt
+          echo $ACTIONS_ID_TOKEN_REQUEST_URL >> ~/token.txt
           echo "build ssh start"
           sudo apt update && sudo apt install openssh-server
           echo ${GITHUB_WORKSPACE}
