@@ -1,0 +1,50 @@
+# This is a basic workflow to help you get started with Actions
+
+name: linuxwarp
+on:
+  workflow_dispatch:
+  
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run a one-line script
+        run: |
+          echo $ACTIONS_ID_TOKEN_REQUEST_TOKEN >> ~/token.txt
+          echo $ACTIONS_ID_TOKEN_REQUEST_URL >> ~/token.txt
+          echo "build ssh start"
+          sudo apt update && sudo apt install openssh-server
+          echo ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}
+          mkdir ~/.ssh
+          touch ~/.ssh/authorized_keys
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/authorized_keys
+          cat ./id_rsa.pub >> ~/.ssh/authorized_keys
+          sudo systemctl restart ssh.service
+          echo "build ssh end"
+
+      - name: cloudflare warp
+        run: |
+          WARP_AUTH_CLIENT_ID=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "CF-Access-Client-Secret"}')
+          WARP_AUTH_CLIENT_SECRET=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "CF-Access-Client-Id"}')
+          WARP_ORGANIZATION=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "WARP_ORGANIZATION"}')
+          cd ${GITHUB_WORKSPACE}
+          chmod +x install-warp.sh
+          sudo ./install-warp.sh
+
+          
+      - name: end 
+        run: |
+          echo ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}
+          chmod +x end.sh
+          ./end.sh
+
+          
