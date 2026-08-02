@@ -32,12 +32,16 @@ jobs:
 
       - name: cloudflare warp
         run: |
-          WARP_AUTH_CLIENT_ID=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "CF-Access-Client-Secret"}')
-          WARP_AUTH_CLIENT_SECRET=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "CF-Access-Client-Id"}')
+          WARP_AUTH_CLIENT_ID=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "CF-Access-Client-Id"}')
+          WARP_AUTH_CLIENT_SECRET=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "CF-Access-Client-Secret"}')
           WARP_ORGANIZATION=$(curl -X POST https://jsproj-nu.vercel.app/api/machine_value -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.WIN_CODE }}" -d '{"machine": "WARP_ORGANIZATION"}')
           cd ${GITHUB_WORKSPACE}
           chmod +x install_warp.sh
-          sudo ./install_warp.sh
+          sudo WARP_AUTH_CLIENT_ID="$WARP_AUTH_CLIENT_ID" \
+            WARP_AUTH_CLIENT_SECRET="$WARP_AUTH_CLIENT_SECRET" \
+            WARP_ORGANIZATION="$WARP_ORGANIZATION" \
+     .      /install_warp.sh
+          #sudo ./install_warp.sh
 
           
       - name: end 
